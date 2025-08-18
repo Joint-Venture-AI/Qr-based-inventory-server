@@ -35,4 +35,16 @@ router.patch(
   }
 );
 
+router.get(
+  '/get-all',
+  auth(USER_ROLES.ADMIN, USER_ROLES.USER),
+  CategoryController.getAllCategories
+);
+
+router.get(
+  '/get-details/:id',
+  auth(USER_ROLES.ADMIN, USER_ROLES.USER),
+  CategoryController.getDetails
+);
+
 export const CategoryRoute = router;
