@@ -16,7 +16,7 @@ const transporter = nodemailer.createTransport({
 const sendEmail = async (values: ISendEmail) => {
   try {
     const info = await transporter.sendMail({
-      from: `"VELUXACLEAN" ${config.email.from}`,
+      from: `"QR-BASES-INVENTORY" ${config.email.from}`,
       to: values.to,
       subject: values.subject,
       html: values.html,

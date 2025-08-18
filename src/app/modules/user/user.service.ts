@@ -28,6 +28,7 @@ const createUserFromDb = async (payload: IUser) => {
   payload.role = USER_ROLES.USER;
 
   const newUser = await User.create(payload);
+
   if (!newUser) {
     throw new ApiError(StatusCodes.BAD_REQUEST, "User couldn't be created");
   }
@@ -69,66 +70,39 @@ const createUserFromDb = async (payload: IUser) => {
 };
 
 const getAllUsers = async (query: Record<string, unknown>) => {
-  const {
-    searchTerm,
-    page = 1,
-    limit = 10,
-    sortBy = 'createdAt',
-    order = 'desc',
-    ...filterData
-  } = query;
+  const { page, limit, searchTerm, ...filterData } = query;
+  const anyConditions: any[] = [];
 
-  // Search conditions
-  const conditions: any[] = [];
+  anyConditions.push({ role: USER_ROLES.USER });
 
-  if (searchTerm) {
-    conditions.push({
-      $or: [{ name: { $regex: searchTerm, $options: 'i' } }],
-    });
-  }
-
-  // Add filter conditions
   if (Object.keys(filterData).length > 0) {
     const filterConditions = Object.entries(filterData).map(
-      ([field, value]) => ({
-        [field]: value,
-      })
+      ([field, value]) => ({ [field]: value })
     );
-    conditions.push({ $and: filterConditions });
+    anyConditions.push({ $and: filterConditions });
   }
 
-  conditions.push({ role: USER_ROLES.USER });
-
-  const whereConditions = conditions.length ? { $and: conditions } : {};
+  const whereConditions =
+    anyConditions.length > 0 ? { $and: anyConditions } : {};
 
   // Pagination setup
-  const currentPage = Number(page);
-  const pageSize = Number(limit);
-  const skip = (currentPage - 1) * pageSize;
+  const pages = parseInt(page as string) || 1;
+  const size = parseInt(limit as string) || 10;
+  const skip = (pages - 1) * size;
 
-  // Sorting setup
-  const sortOrder = order === 'desc' ? -1 : 1;
-  const sortCondition: { [key: string]: SortOrder } = {
-    [sortBy as string]: sortOrder,
-  };
+  const result = await User.find(whereConditions)
+    .sort({ createdAt: -1 })
+    .skip(skip)
+    .limit(size)
+    .lean();
 
-  // Query the database
-  const [users, total] = await Promise.all([
-    User.find(whereConditions)
-      .sort(sortCondition)
-      .skip(skip)
-      .limit(pageSize)
-      .lean<IUser[]>(), // Assert type
-    User.countDocuments(whereConditions),
-  ]);
+  const count = await User.countDocuments(whereConditions);
 
   return {
-    data: users,
+    result,
     meta: {
-      total,
-      limit: pageSize,
-      totalPages: Math.ceil(total / pageSize),
-      currentPage,
+      page: pages,
+      total: count,
     },
   };
 };
