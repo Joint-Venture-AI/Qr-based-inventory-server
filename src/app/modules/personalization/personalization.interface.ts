@@ -5,4 +5,5 @@ export type IPersonalization = {
   name: string;
   email: string;
   category: Types.ObjectId;
+  birthday?: Date;
 };

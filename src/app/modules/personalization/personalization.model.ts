@@ -21,6 +21,10 @@ const personalizationSchema = new Schema<IPersonalization>(
       ref: 'User',
       required: false,
     },
+    birthday: {
+      type: Date,
+      required: false,
+    },
   },
   {
     timestamps: true,
