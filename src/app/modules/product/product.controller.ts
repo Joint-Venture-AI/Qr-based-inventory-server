@@ -5,13 +5,13 @@ import sendResponse from '../../../shared/sendResponse';
 import { ProductService } from './product.service';
 
 const createProduct = catchAsync(async (req, res) => {
-  const productData = { ...req.body };
-  const image = getFilePathMultiple(req.files, 'image', 'image');
-  if (image?.length) {
-    productData.image = image[0];
-  }
+  const value = { ...req.body };
 
-  const result = await ProductService.createProduct(productData);
+  const image = getFilePathMultiple(req.files, 'image', 'image');
+
+  if (image?.length) value.image = image[0];
+
+  const result = await ProductService.createProduct(value);
 
   sendResponse(res, {
     statusCode: StatusCodes.CREATED,
