@@ -28,6 +28,11 @@ const productSchema = new Schema<IProduct>(
       type: String,
       required: false,
     },
+    status: {
+      type: String,
+      enum: ['active', 'deleted'],
+      default: 'active',
+    },
   },
   {
     timestamps: true,

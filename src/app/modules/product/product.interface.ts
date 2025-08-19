@@ -7,4 +7,5 @@ export type IProduct = {
   category: Types.ObjectId;
   rating?: string;
   size?: string;
+  status: 'active' | 'deleted';
 };

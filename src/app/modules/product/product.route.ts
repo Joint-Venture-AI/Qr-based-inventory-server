@@ -47,4 +47,10 @@ router.get(
   ProductController.productDetails
 );
 
+router.delete(
+  '/delete/:id',
+  auth(USER_ROLES.ADMIN),
+  ProductController.deleteProduct
+);
+
 export const ProductRoutes = router;

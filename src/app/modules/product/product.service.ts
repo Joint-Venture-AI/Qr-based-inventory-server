@@ -35,7 +35,7 @@ const updateProduct = async (id: string, data: IProduct) => {
 const getAllProducts = async (query: Record<string, unknown>) => {
   const { searchTerm, name, page = '1', limit = '10', ...filters } = query;
 
-  const conditions: any[] = [];
+  const conditions: any[] = [{ status: 'active' }];
 
   // Search by category name
   if (searchTerm) {
@@ -97,9 +97,33 @@ const productDetails = async (id: string): Promise<IProduct | null> => {
   return product;
 };
 
+const deleteProduct = async (id: string): Promise<IProduct | null> => {
+  const product = await Product.findByIdAndUpdate(
+    id,
+    { status: 'deleted' },
+    { new: true }
+  );
+
+  if (!product) {
+    throw new ApiError(StatusCodes.NOT_FOUND, 'Product not found');
+  }
+
+  // Safely unlink the image if it exists
+  if (product.image) {
+    try {
+      await unlinkFile(product.image);
+    } catch (err) {
+      console.warn(`Failed to delete image: ${product.image}`, err);
+    }
+  }
+
+  return product;
+};
+
 export const ProductService = {
   createProduct,
   updateProduct,
   getAllProducts,
   productDetails,
+  deleteProduct,
 };
