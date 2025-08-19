@@ -16,6 +16,23 @@ const createProduct = async (product: IProduct): Promise<IProduct> => {
   return newProduct;
 };
 
+const updateProduct = async (id: string, data: IProduct) => {
+  const isExistProduct = await Product.findById(id);
+  if (!isExistProduct) {
+    throw new ApiError(StatusCodes.NOT_FOUND, 'Product not found');
+  }
+  if (data.image && isExistProduct.image) {
+    unlinkFile(isExistProduct.image);
+  }
+
+  const result = await Product.findByIdAndUpdate(id, data, {
+    new: true,
+  });
+
+  return result;
+};
+
 export const ProductService = {
   createProduct,
+  updateProduct,
 };

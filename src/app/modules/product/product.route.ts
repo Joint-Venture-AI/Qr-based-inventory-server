@@ -21,4 +21,18 @@ router.post(
   }
 );
 
+router.patch(
+  '/update/:id',
+  fileUploadHandler,
+  auth(USER_ROLES.ADMIN),
+  (req: Request, res: Response, next: NextFunction) => {
+    if (req.body.data) {
+      req.body = ProductValidation.updateProductSchema.parse(
+        JSON.parse(req.body.data)
+      );
+    }
+    return ProductController.updateProduct(req, res, next);
+  }
+);
+
 export const ProductRoutes = router;

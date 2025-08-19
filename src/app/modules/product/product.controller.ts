@@ -21,6 +21,24 @@ const createProduct = catchAsync(async (req, res) => {
   });
 });
 
+const updateProduct = catchAsync(async (req, res) => {
+  const value = { ...req.body };
+
+  const image = getFilePathMultiple(req.files, 'image', 'image');
+
+  if (image?.length) value.image = image[0];
+
+  const result = await ProductService.updateProduct(req.params.id, value);
+
+  sendResponse(res, {
+    statusCode: StatusCodes.CREATED,
+    success: true,
+    message: 'Product updated successfully',
+    data: result,
+  });
+});
+
 export const ProductController = {
   createProduct,
+  updateProduct,
 };
