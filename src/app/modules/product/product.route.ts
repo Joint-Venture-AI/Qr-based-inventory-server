@@ -35,4 +35,10 @@ router.patch(
   }
 );
 
+router.get(
+  '/get-all-products',
+  auth(USER_ROLES.ADMIN, USER_ROLES.USER),
+  ProductController.getAllProducts
+);
+
 export const ProductRoutes = router;

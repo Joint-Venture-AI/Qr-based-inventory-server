@@ -32,7 +32,65 @@ const updateProduct = async (id: string, data: IProduct) => {
   return result;
 };
 
+const getAllProducts = async (query: Record<string, unknown>) => {
+  const { searchTerm, name, page, limit, ...filterData } = query;
+  const anyConditions: any[] = [];
+
+  // Add searchTerm condition if present
+  if (searchTerm) {
+    const categoriesIds = await Category.find({
+      name: { $regex: searchTerm, $options: 'i' },
+    }).distinct('_id');
+
+    if (categoriesIds.length > 0) {
+      anyConditions.push({ category: { $in: categoriesIds } });
+    }
+  }
+
+  if (name) {
+    anyConditions.push({ name: { $regex: name, $options: 'i' } });
+  }
+
+  // Filter by additional filterData fields
+  if (Object.keys(filterData).length > 0) {
+    const filterConditions = Object.entries(filterData).map(
+      ([field, value]) => ({ [field]: value })
+    );
+    anyConditions.push({ $and: filterConditions });
+  }
+
+  // Combine all conditions
+  const whereConditions =
+    anyConditions.length > 0 ? { $and: anyConditions } : {};
+
+  // Pagination setup
+  const pages = parseInt(page as string) || 1;
+  const size = parseInt(limit as string) || 10;
+  const skip = (pages - 1) * size;
+
+  // Fetch Category data
+  const result = await Product.find(whereConditions)
+    .populate({
+      path: 'category',
+      select: 'name',
+    })
+    .sort({ createdAt: -1 })
+    .skip(skip)
+    .limit(size)
+    .lean();
+
+  const count = await Product.countDocuments(whereConditions);
+
+  return {
+    result,
+    meta: {
+      page: pages,
+      total: count,
+    },
+  };
+};
 export const ProductService = {
   createProduct,
   updateProduct,
+  getAllProducts,
 };
