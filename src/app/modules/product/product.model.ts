@@ -4,7 +4,8 @@ import { IProduct } from './product.interface';
 const productSchema = new Schema<IProduct>(
   {
     category: {
-      type: String,
+      type: Schema.Types.ObjectId,
+      ref: 'Category',
       required: true,
     },
     name: {
