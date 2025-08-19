@@ -41,4 +41,10 @@ router.get(
   ProductController.getAllProducts
 );
 
+router.get(
+  '/get-details/:id',
+  auth(USER_ROLES.ADMIN, USER_ROLES.USER),
+  ProductController.productDetails
+);
+
 export const ProductRoutes = router;

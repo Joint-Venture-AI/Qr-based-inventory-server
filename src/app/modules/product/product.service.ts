@@ -33,64 +33,73 @@ const updateProduct = async (id: string, data: IProduct) => {
 };
 
 const getAllProducts = async (query: Record<string, unknown>) => {
-  const { searchTerm, name, page, limit, ...filterData } = query;
-  const anyConditions: any[] = [];
+  const { searchTerm, name, page = '1', limit = '10', ...filters } = query;
 
-  // Add searchTerm condition if present
+  const conditions: any[] = [];
+
+  // Search by category name
   if (searchTerm) {
-    const categoriesIds = await Category.find({
+    const categoryIds = await Category.find({
       name: { $regex: searchTerm, $options: 'i' },
     }).distinct('_id');
 
-    if (categoriesIds.length > 0) {
-      anyConditions.push({ category: { $in: categoriesIds } });
+    if (categoryIds.length) {
+      conditions.push({ category: { $in: categoryIds } });
     }
   }
 
+  // Search by product name
   if (name) {
-    anyConditions.push({ name: { $regex: name, $options: 'i' } });
+    conditions.push({ name: { $regex: name, $options: 'i' } });
   }
 
-  // Filter by additional filterData fields
-  if (Object.keys(filterData).length > 0) {
-    const filterConditions = Object.entries(filterData).map(
-      ([field, value]) => ({ [field]: value })
-    );
-    anyConditions.push({ $and: filterConditions });
+  // Additional filters
+  if (Object.keys(filters).length) {
+    conditions.push({
+      $and: Object.entries(filters).map(([key, value]) => ({ [key]: value })),
+    });
   }
 
-  // Combine all conditions
-  const whereConditions =
-    anyConditions.length > 0 ? { $and: anyConditions } : {};
+  const where = conditions.length ? { $and: conditions } : {};
 
-  // Pagination setup
-  const pages = parseInt(page as string) || 1;
-  const size = parseInt(limit as string) || 10;
-  const skip = (pages - 1) * size;
+  // Pagination
+  const pageNumber = parseInt(page as string, 10);
+  const pageSize = parseInt(limit as string, 10);
+  const skip = (pageNumber - 1) * pageSize;
 
-  // Fetch Category data
-  const result = await Product.find(whereConditions)
-    .populate({
-      path: 'category',
-      select: 'name',
-    })
-    .sort({ createdAt: -1 })
-    .skip(skip)
-    .limit(size)
-    .lean();
-
-  const count = await Product.countDocuments(whereConditions);
+  // Fetch products with category populated
+  const [products, total] = await Promise.all([
+    Product.find(where)
+      .populate({ path: 'category', select: 'name' })
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(pageSize)
+      .lean(),
+    Product.countDocuments(where),
+  ]);
 
   return {
-    result,
+    result: products,
     meta: {
-      page: pages,
-      total: count,
+      page: pageNumber,
+      total,
     },
   };
 };
+
+const productDetails = async (id: string): Promise<IProduct | null> => {
+  const product = await Product.findById(id)
+    .populate({ path: 'category', select: 'name image -_id' })
+    .lean();
+  if (!product) {
+    throw new ApiError(StatusCodes.NOT_FOUND, 'Product not found');
+  }
+  return product;
+};
+
 export const ProductService = {
   createProduct,
   updateProduct,
   getAllProducts,
+  productDetails,
 };
