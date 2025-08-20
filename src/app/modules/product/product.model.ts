@@ -21,7 +21,7 @@ const productSchema = new Schema<IProduct>(
       required: true,
     },
     rating: {
-      type: String,
+      type: Number,
       required: false,
     },
     size: {
@@ -32,6 +32,10 @@ const productSchema = new Schema<IProduct>(
       type: String,
       enum: ['active', 'deleted'],
       default: 'active',
+    },
+    count: {
+      type: Number,
+      required: false,
     },
   },
   {

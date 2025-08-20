@@ -1,5 +1,5 @@
 import { model, Schema } from 'mongoose';
-import { IReview } from './review.route';
+import { IReview } from './review.interface';
 
 const reviewSchema = new Schema<IReview>(
   {
@@ -11,6 +11,8 @@ const reviewSchema = new Schema<IReview>(
     rating: {
       type: Number,
       required: true,
+      min: 1,
+      max: 5,
     },
     review: {
       type: String,

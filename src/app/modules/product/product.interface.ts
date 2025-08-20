@@ -5,7 +5,8 @@ export type IProduct = {
   image: string;
   price: string;
   category: Types.ObjectId;
-  rating?: string;
+  rating?: number;
+  count?: number;
   size?: string;
   status: 'active' | 'deleted';
 };

@@ -1,8 +1,14 @@
-import { Types } from 'mongoose';
+import express from 'express';
+import { USER_ROLES } from '../../../enums/user';
+import auth from '../../middlewares/auth';
+import { ReviewController } from './review.controller';
 
-export type IReview = {
-  rating: number;
-  review: string;
-  user: Types.ObjectId;
-  product: Types.ObjectId;
-};
+const router = express.Router();
+
+router.post(
+  '/create-review',
+  auth(USER_ROLES.USER),
+  ReviewController.createReviewToDB
+);
+
+export const ReviewRoutes = router;
