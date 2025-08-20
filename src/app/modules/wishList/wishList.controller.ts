@@ -53,8 +53,20 @@ const getAllWishLists = catchAsync(async (req, res) => {
   });
 });
 
+const getDetailsWishList = catchAsync(async (req, res) => {
+  const result = await WishListService.getDetailsWishList(req.params.id);
+
+  sendResponse(res, {
+    statusCode: StatusCodes.CREATED,
+    success: true,
+    message: 'Wish List retrieved successfully',
+    data: result,
+  });
+});
+
 export const WishListController = {
   createWishList,
   removeWishList,
   getAllWishLists,
+  getDetailsWishList,
 };

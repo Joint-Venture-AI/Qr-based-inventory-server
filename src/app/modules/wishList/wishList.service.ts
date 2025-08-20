@@ -89,8 +89,19 @@ const getAllWishLists = async (
   };
 };
 
+const getDetailsWishList = async (id: string): Promise<IWishList | null> => {
+  const wishListItem = await WishList.findById(id).populate({
+    path: 'product',
+  });
+  if (!wishListItem) {
+    throw new ApiError(StatusCodes.NOT_FOUND, 'Wish List item not found');
+  }
+  return wishListItem;
+};
+
 export const WishListService = {
   createWishList,
   removeWishList,
   getAllWishLists,
+  getDetailsWishList,
 };

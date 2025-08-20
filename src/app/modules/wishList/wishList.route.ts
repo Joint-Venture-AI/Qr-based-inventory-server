@@ -23,4 +23,10 @@ router.get(
   WishListController.getAllWishLists
 );
 
+router.get(
+  '/get-details-wishlist/:id',
+  auth(USER_ROLES.USER),
+  WishListController.getDetailsWishList
+);
+
 export const WishListRoutes = router;
