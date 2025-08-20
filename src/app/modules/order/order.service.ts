@@ -1,18 +1,31 @@
+import { sendNotifications } from '../../../helpers/notificationHelper';
 import { Product } from '../product/product.model';
 import { IOrder } from './order.interface';
 import { Order } from './order.model';
 
 const createOrder = async (orderData: IOrder) => {
-  // Check product existence first
-  const productIds = orderData.items.map(item => item.productId);
-  const existingProducts = await Product.find({ _id: { $in: productIds } });
+  const order = await Order.create(orderData);
 
-  if (existingProducts.length !== productIds.length) {
-    throw new Error('One or more products do not exist.');
+  const products = order.items.map(item => ({
+    productId: item.productId,
+  }));
+
+  for (const product of products) {
+    await Product.findOne({ _id: product.productId });
+
+    const isExist = await Product.findOne({ _id: product.productId });
+
+    await sendNotifications({
+      text: `Your order has been placed successfully.`,
+      receiver: order.user,
+      product: product.productId,
+    });
+
+    if (!isExist) {
+      throw new Error(`Product does not exist.`);
+    }
   }
 
-  // Create order only after validation
-  const order = await Order.create(orderData);
   return order;
 };
 

@@ -20,6 +20,11 @@ const notificationSchema = new Schema<INotification, NotificationModel>(
       type: String,
       required: false,
     },
+    product: {
+      type: Schema.Types.ObjectId,
+      ref: 'Product',
+      required: false,
+    },
   },
   {
     timestamps: true,
