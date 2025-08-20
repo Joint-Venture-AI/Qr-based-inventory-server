@@ -4,6 +4,7 @@ import { Category } from '../category/category.model';
 import { IProduct } from './product.interface';
 import { Product } from './product.model';
 import unlinkFile from '../../../shared/unlinkFile';
+import { Review } from '../review/review.model';
 
 const createProduct = async (product: IProduct): Promise<IProduct> => {
   const isExistCategory = await Category.findById(product.category);
@@ -87,14 +88,72 @@ const getAllProducts = async (query: Record<string, unknown>) => {
   };
 };
 
-const productDetails = async (id: string): Promise<IProduct | null> => {
+interface IStarPercentage {
+  5: number;
+  4: number;
+  3: number;
+  2: number;
+  1: number;
+}
+
+const productDetails = async (id: string) => {
+  // Get product
   const product = await Product.findById(id)
+    .select('-count -rating')
     .populate({ path: 'category', select: 'name image -_id' })
     .lean();
+
   if (!product) {
     throw new ApiError(StatusCodes.NOT_FOUND, 'Product not found');
   }
-  return product;
+
+  const getReviewDetails = await Review.find({ product: id })
+    .select('user review rating createdAt')
+    .populate({
+      path: 'user',
+      select: 'name email image',
+    });
+
+  if (!getReviewDetails) {
+    throw new ApiError(
+      StatusCodes.NOT_FOUND,
+      'No reviews found for this product'
+    );
+  }
+
+  // Get reviews
+  const reviews = await Review.find({ product: id }).lean();
+  const totalReviews = reviews.length;
+
+  const counts = reviews.reduce(
+    (acc: any, review) => {
+      const r = review.rating;
+      if (r >= 1 && r <= 5) {
+        acc[r] = (acc[r] || 0) + 1;
+      }
+      return acc;
+    },
+    { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 }
+  );
+
+  const percentages = {
+    5: totalReviews ? Math.round((counts[5] / totalReviews) * 100) : 0,
+    4: totalReviews ? Math.round((counts[4] / totalReviews) * 100) : 0,
+    3: totalReviews ? Math.round((counts[3] / totalReviews) * 100) : 0,
+    2: totalReviews ? Math.round((counts[2] / totalReviews) * 100) : 0,
+    1: totalReviews ? Math.round((counts[1] / totalReviews) * 100) : 0,
+  };
+
+  // Combine product data + rating stats
+  return {
+    ...product,
+    ratingStats: {
+      totalReviews,
+      counts,
+      percentages,
+      getReviewDetails,
+    },
+  };
 };
 
 const deleteProduct = async (id: string): Promise<IProduct | null> => {
