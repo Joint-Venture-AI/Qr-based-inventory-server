@@ -88,14 +88,6 @@ const getAllProducts = async (query: Record<string, unknown>) => {
   };
 };
 
-interface IStarPercentage {
-  5: number;
-  4: number;
-  3: number;
-  2: number;
-  1: number;
-}
-
 const productDetails = async (id: string) => {
   // Get product
   const product = await Product.findById(id)
