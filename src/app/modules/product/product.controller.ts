@@ -71,10 +71,22 @@ const deleteProduct = catchAsync(async (req, res) => {
   });
 });
 
+const getAllProductAdmin = catchAsync(async (req, res) => {
+  const result = await ProductService.getAllProductAdmin(req.query);
+
+  sendResponse(res, {
+    statusCode: StatusCodes.CREATED,
+    success: true,
+    message: 'Product retrieved successfully',
+    data: result,
+  });
+});
+
 export const ProductController = {
   createProduct,
   updateProduct,
   getAllProducts,
   productDetails,
   deleteProduct,
+  getAllProductAdmin,
 };

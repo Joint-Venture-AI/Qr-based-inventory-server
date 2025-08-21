@@ -62,6 +62,8 @@ const getAllProducts = async (query: Record<string, unknown>) => {
     conditions.push({ name: { $regex: name, $options: 'i' } });
   }
 
+  conditions.push({ status: 'active' });
+
   // Additional filters
   if (Object.keys(filters).length) {
     conditions.push({
@@ -179,10 +181,77 @@ const deleteProduct = async (id: string): Promise<IProduct | null> => {
   return product;
 };
 
+const getAllProductAdmin = async (query: Record<string, unknown>) => {
+  const {
+    searchTerm,
+    name,
+    status,
+    page = '1',
+    limit = '10',
+    ...filters
+  } = query;
+
+  const conditions: any[] = [];
+
+  // Search by category name
+  if (searchTerm) {
+    const categoryIds = await Category.find({
+      name: { $regex: searchTerm, $options: 'i' },
+    }).distinct('_id');
+
+    if (categoryIds.length) {
+      conditions.push({ category: { $in: categoryIds } });
+    }
+  }
+
+  // Search by product name
+  if (name) {
+    conditions.push({ name: { $regex: name, $options: 'i' } });
+  }
+
+  if (status) {
+    conditions.push({ status: { $regex: status, $options: 'i' } });
+  }
+
+  // Additional filters
+  if (Object.keys(filters).length) {
+    conditions.push({
+      $and: Object.entries(filters).map(([key, value]) => ({ [key]: value })),
+    });
+  }
+
+  const where = conditions.length ? { $and: conditions } : {};
+
+  // Pagination
+  const pageNumber = parseInt(page as string, 10);
+  const pageSize = parseInt(limit as string, 10);
+  const skip = (pageNumber - 1) * pageSize;
+
+  // Fetch products with category populated
+  const [products, total] = await Promise.all([
+    Product.find(where)
+      .populate({ path: 'category', select: 'name' })
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(pageSize)
+      .lean(),
+    Product.countDocuments(where),
+  ]);
+
+  return {
+    result: products,
+    meta: {
+      page: pageNumber,
+      total,
+    },
+  };
+};
+
 export const ProductService = {
   createProduct,
   updateProduct,
   getAllProducts,
   productDetails,
   deleteProduct,
+  getAllProductAdmin,
 };
