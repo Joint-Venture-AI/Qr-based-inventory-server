@@ -5,6 +5,7 @@ import { IProduct } from './product.interface';
 import { Product } from './product.model';
 import unlinkFile from '../../../shared/unlinkFile';
 import { Review } from '../review/review.model';
+import { sendNotifications } from '../../../helpers/notificationHelper';
 
 const createProduct = async (product: IProduct): Promise<IProduct> => {
   const isExistCategory = await Category.findById(product.category);
@@ -14,6 +15,13 @@ const createProduct = async (product: IProduct): Promise<IProduct> => {
   }
 
   const newProduct = await Product.create(product);
+
+  await sendNotifications({
+    text: `New Arrivals - ${newProduct.name}`,
+    type: 'USER',
+    product: newProduct._id,
+  });
+
   return newProduct;
 };
 

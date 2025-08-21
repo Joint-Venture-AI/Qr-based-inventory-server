@@ -2,21 +2,25 @@ import { JwtPayload } from 'jsonwebtoken';
 import { Notification } from './Notification.model';
 
 const getNotificationToDb = async (user: JwtPayload) => {
-  const result = await Notification.find({ receiver: user.id });
+  const result = await Notification.find({
+    $or: [{ receiver: user.id }, { type: 'USER' }],
+  })
+    .populate({
+      path: 'product',
+      select: 'name image price',
+    })
+    .sort({ createdAt: -1 });
 
   const unredCount = await Notification.countDocuments({
-    receiver: user.id,
+    $or: [{ receiver: user.id }, { type: 'USER' }],
     read: false,
   });
 
-  const data = {
+  return {
     result,
     unredCount,
   };
-
-  return data;
 };
-
 const readNotification = async (user: JwtPayload) => {
   const result = await Notification.updateMany(
     { receiver: user.id },
