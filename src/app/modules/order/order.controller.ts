@@ -20,6 +20,17 @@ const createOrder = catchAsync(async (req, res) => {
   });
 });
 
+const acceptOrder = catchAsync(async (req, res) => {
+  const result = await OrderService.acceptOrder(req.params.id);
+  sendResponse(res, {
+    statusCode: StatusCodes.CREATED,
+    success: true,
+    message: 'Order accepted successfully',
+    data: result,
+  });
+});
+
 export const OrderController = {
   createOrder,
+  acceptOrder,
 };
