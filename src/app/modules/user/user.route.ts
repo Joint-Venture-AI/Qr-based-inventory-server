@@ -32,7 +32,7 @@ router.get(
 router.get('/get-all-users', auth(USER_ROLES.ADMIN), UserController.getAllUser);
 
 router.get(
-  '/get-all-users/:id',
+  '/get-users/:id',
   auth(USER_ROLES.ADMIN),
   UserController.getSingleUser
 );

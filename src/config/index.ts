@@ -33,9 +33,4 @@ export default {
     email: process.env.ADMIN_EMAIL,
     password: process.env.ADMIN_PASSWORD,
   },
-  vimeo: {
-    client_id: process.env.VIMEO_CLIENT_ID,
-    client_secret: process.env.VIMEO_CLIENT_SECRET,
-    access_token: process.env.VIMEO_ACCESS_TOKEN,
-  },
 };

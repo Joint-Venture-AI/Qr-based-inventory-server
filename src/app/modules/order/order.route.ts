@@ -11,4 +11,10 @@ router.post(
   OrderController.createOrder
 );
 
+router.patch(
+  '/accept-order/:id',
+  auth(USER_ROLES.ADMIN),
+  OrderController.acceptOrder
+);
+
 export const OrderRoutes = router;
