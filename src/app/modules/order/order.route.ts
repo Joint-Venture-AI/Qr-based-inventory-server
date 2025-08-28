@@ -17,4 +17,10 @@ router.patch(
   OrderController.acceptOrder
 );
 
+router.get(
+  '/get-all-order',
+  auth(USER_ROLES.ADMIN),
+  OrderController.getAllOrder
+);
+
 export const OrderRoutes = router;
