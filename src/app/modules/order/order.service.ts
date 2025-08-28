@@ -53,7 +53,54 @@ const acceptOrder = async (orderId: string) => {
   return updatedOrder;
 };
 
+const getAllOrder = async (query: Record<string, unknown>) => {
+  const { searchTerm, name, page = '1', limit = '10', ...filters } = query;
+
+  const conditions: any[] = [];
+
+  // Additional filters
+  if (Object.keys(filters).length) {
+    conditions.push({
+      $and: Object.entries(filters).map(([key, value]) => ({ [key]: value })),
+    });
+  }
+
+  const where = conditions.length ? { $and: conditions } : {};
+
+  // Pagination
+  const pageNumber = parseInt(page as string, 10);
+  const pageSize = parseInt(limit as string, 10);
+  const skip = (pageNumber - 1) * pageSize;
+
+  // Fetch products with category populated
+  const [order, total] = await Promise.all([
+    Order.find(where)
+      .populate({
+        path: 'items.productId',
+        model: 'Product',
+        select: 'name image size',
+      })
+      .populate({
+        path: 'user',
+        select: 'name email',
+      })
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(pageSize)
+      .lean(),
+    Order.countDocuments(where),
+  ]);
+
+  return {
+    result: order,
+    meta: {
+      page: pageNumber,
+      total,
+    },
+  };
+};
 export const OrderService = {
   createOrder,
   acceptOrder,
+  getAllOrder,
 };

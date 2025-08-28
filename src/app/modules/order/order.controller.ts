@@ -30,7 +30,18 @@ const acceptOrder = catchAsync(async (req, res) => {
   });
 });
 
+const getAllOrder = catchAsync(async (req, res) => {
+  const result = await OrderService.getAllOrder(req.query);
+  sendResponse(res, {
+    statusCode: StatusCodes.CREATED,
+    success: true,
+    message: 'Order retrieved successfully',
+    data: result,
+  });
+});
+
 export const OrderController = {
   createOrder,
   acceptOrder,
+  getAllOrder,
 };
